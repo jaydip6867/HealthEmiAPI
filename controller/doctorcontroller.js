@@ -15,50 +15,42 @@ var transporter = nodemailer.createTransport({
 exports.InsertDoctor = async (req, res) => {
     try {
 
-        var doctorExist = Doctor.findOne({ email: req.body.email })
+        const min = 100000;
+        const max = 999999;
+        const OTP = Math.floor(Math.random() * (max - min + 1)) + min;
 
-        if (!doctorExist) {
-            const min = 100000;
-            const max = 999999;
-            const OTP = Math.floor(Math.random() * (max - min + 1)) + min;
+        var mailOptions = {
+            from: 'demi.design3@gmail.com',
+            to: req.body.email,
+            subject: 'Dear Doctor Your OTP Is.',
+            text: 'Your OTP is : ' + OTP
+        };
 
-            var mailOptions = {
-                from: 'demi.design3@gmail.com',
-                to: req.body.email,
-                subject: 'Dear Doctor Your OTP Is.',
-                text: 'Your OTP is : ' + OTP
-            };
+        transporter.sendMail(mailOptions, async function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                // await storage.setItem('UserData', req.body);
+                // await storage.setItem('otp', OTP);
 
-            transporter.sendMail(mailOptions, async function (error, info) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    // await storage.setItem('UserData', req.body);
-                    // await storage.setItem('otp', OTP);
-
-                    var newdoctor = {
-                        doctorname: req.body.doctorname,
-                        email: req.body.email,
-                        password: req.body.password,
-                        gender: req.body.gender,
-                        mobile: req.body.mobile,
-                        otp: OTP
-                    }
-
-                    // var newdoctor = new Doctor(req.body);
-                    await Doctor.create(newdoctor);
-
-                    res.status(200).json({
-                        status: "OTP Send successfully"
-                    })
+                var newdoctor = {
+                    doctorname: req.body.doctorname,
+                    email: req.body.email,
+                    password: req.body.password,
+                    gender: req.body.gender,
+                    mobile: req.body.mobile,
+                    otp: OTP
                 }
-            });
-        }
-        else {
-            res.status(200).json({
-                status: "Email Already Exist..."
-            })
-        }
+
+                // var newdoctor = new Doctor(req.body);
+                await Doctor.create(newdoctor);
+
+                res.status(200).json({
+                    status: "OTP Send successfully"
+                })
+            }
+        });
+
 
     } catch (error) {
         res.status(200).json({
@@ -117,19 +109,20 @@ exports.DoctorLogin = async (req, res) => {
 
         // 2. Check password
         if (password == doctor.password) {
-            if (doctor.isActive == true) {
+            if(doctor.isActive == true)
+            {
                 res.status(200).json({
                     status: 'Login successful',
                     doctor
                 });
             }
-            else {
+            else{
                 res.status(200).json({
                     status: 'Account not verified. Contact Administrator.',
                 });
             }
         }
-        else {
+        else{
             res.status(200).json({ error: error.message });
         }
 
